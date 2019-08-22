@@ -1,9 +1,9 @@
-#Cloud OCR SDK
+# Cloud OCR SDK
 This Java library is intended to simplify the development of image recognition solutions with ABBYY Cloud OCR SDK API. 
 This repo contains the client library enabling simple access to high-quality recognition technologies. 
 For more information about the product visit [ABBYY Cloud OCR SDK website](https://www.ocrsdk.com/).
 
-##Build
+## Build
 To simplify project building, Maven wrapper is used. One just needs to run
 ```
 mvnw.cmd clean package
@@ -25,7 +25,7 @@ mvnw.cmd clean package -DskipTests
 
 The build result is located in **target/releases**.
 
-##Usage
+## Usage
 The following sample demonstrates how to process image with the specified parameters and export the result to TXT and DOCX 
 using the ABBYY Cloud OCR SDK client library. 
 Start your developement with the following steps.
