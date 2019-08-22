@@ -1,20 +1,28 @@
 package abbyy.cloudsdk.v2.client.models.requestparams;
 
 import abbyy.cloudsdk.v2.client.models.TaskInfo;
-import abbyy.cloudsdk.v2.client.models.enums.*;
+import abbyy.cloudsdk.v2.client.models.enums.ExportFormat;
+import abbyy.cloudsdk.v2.client.models.enums.ProcessingProfile;
+import abbyy.cloudsdk.v2.client.models.enums.TextType;
+import abbyy.cloudsdk.v2.client.models.enums.WriteTags;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.UUID;
+
 /**
- * Parameters for Image Processing request
+ * Parameters for Document Processing request
  */
-public final class ImageProcessingParams extends RequestParams<TaskInfo> {
+public final class DocumentProcessingParams extends RequestParams<TaskInfo> {
     /**
-     * Optional. Contains a password for accessing password-protected images in PDF format.
+     * Required. Specifies the identifier of the task. If the task with the
+     * specified identifier does not exist or has been deleted, an error is
+     * returned.
      */
-    private String pdfPassword;
+    private UUID taskId;
 
     /**
-     * Optional. Contains the description of the processing task. Cannot contain more than 255 characters.
+     * Optional. Contains the description of the processing task. Cannot
+     * contain more than 255 characters.
      */
     private String description;
 
@@ -25,34 +33,15 @@ public final class ImageProcessingParams extends RequestParams<TaskInfo> {
     private ExportFormat[] exportFormats;
 
     /**
-     * Optional. Default is {@link ProcessingProfile#DocumentConversion}. Specifies a profile with predefined processing settings.
+     *  Optional. Default is {@link ProcessingProfile#DocumentConversion}. Specifies a profile with predefined processing settings.
      */
-    private ProcessingProfile profile;
+    private ProcessingProfile processingProfile;
 
     /**
      * Optional. Default is {@link TextType#Normal}. Specifies the type of the text on a page.
      */
     @JsonProperty("textType")
     private TextType[] textTypes;
-
-    /**
-     * Optional. Default is {@link ImageSource#Auto}. Specifies the source of the image.
-     */
-    private ImageSource imageSource;
-
-    /**
-     * Optional. Default "true". Specifies whether the orientation of the image should be automatically detected and corrected.
-     * <ul>
-     *   <li><b>true</b></li> The page orientation is automatically detected, and if it differs from normal the image is rotated.
-     *   <li><b>false</b></li> The page orientation detection and correction is not performed.
-     * </ul>
-     */
-    private Boolean correctOrientation;
-
-    /**
-     * Optional. Default "true". Specifies whether the skew of the image should be automatically detected and corrected.
-     */
-    private Boolean correctSkew;
 
     /**
      * Optional. Default "English". Specifies recognition language of the document.
@@ -65,7 +54,7 @@ public final class ImageProcessingParams extends RequestParams<TaskInfo> {
 
     /**
      * Optional. Default is {@link WriteTags#Auto}. Specifies whether the result must be written as tagged PDF.
-     * his parameter can be used only if the {@link ExportFormat} parameter contains one of the
+     * This parameter can be used only if the {@link ExportFormat} parameter contains one of the
      * values for export to PDF.
      */
     @JsonProperty("pdf:writeTags")
@@ -95,16 +84,16 @@ public final class ImageProcessingParams extends RequestParams<TaskInfo> {
      */
     private Boolean readBarcodes;
 
-    public ImageProcessingParams() {
+    public DocumentProcessingParams() {
         super(TaskInfo.class);
     }
 
-    public String getPdfPassword() {
-        return pdfPassword;
+    public UUID getTaskId() {
+        return taskId;
     }
 
-    public void setPdfPassword(String pdfPassword) {
-        this.pdfPassword = pdfPassword;
+    public void setTaskId(UUID taskId) {
+        this.taskId = taskId;
     }
 
     public String getDescription() {
@@ -123,12 +112,12 @@ public final class ImageProcessingParams extends RequestParams<TaskInfo> {
         this.exportFormats = exportFormats;
     }
 
-    public ProcessingProfile getProfile() {
-        return profile;
+    public ProcessingProfile getProcessingProfile() {
+        return processingProfile;
     }
 
-    public void setProfile(ProcessingProfile profile) {
-        this.profile = profile;
+    public void setProcessingProfile(ProcessingProfile processingProfile) {
+        this.processingProfile = processingProfile;
     }
 
     public TextType[] getTextTypes() {
@@ -137,30 +126,6 @@ public final class ImageProcessingParams extends RequestParams<TaskInfo> {
 
     public void setTextTypes(TextType[] textTypes) {
         this.textTypes = textTypes;
-    }
-
-    public ImageSource getImageSource() {
-        return imageSource;
-    }
-
-    public void setImageSource(ImageSource imageSource) {
-        this.imageSource = imageSource;
-    }
-
-    public Boolean getCorrectOrientation() {
-        return correctOrientation;
-    }
-
-    public void setCorrectOrientation(Boolean correctOrientation) {
-        this.correctOrientation = correctOrientation;
-    }
-
-    public Boolean getCorrectSkew() {
-        return correctSkew;
-    }
-
-    public void setCorrectSkew(Boolean correctSkew) {
-        this.correctSkew = correctSkew;
     }
 
     public String getLanguage() {
