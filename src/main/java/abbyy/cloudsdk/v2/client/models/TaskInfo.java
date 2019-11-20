@@ -47,7 +47,7 @@ public final class TaskInfo {
      * Description of the processing error. Specified only with
      * ProcessingFailed Task status
      */
-    private Error error;
+    private String error;
 
     /**
      * Number of files added to a Task
@@ -106,11 +106,11 @@ public final class TaskInfo {
         this.status = status;
     }
 
-    public Error getError() {
+    public String getError() {
         return error;
     }
 
-    public void setError(Error error) {
+    public void setError(String error) {
         this.error = error;
     }
 
