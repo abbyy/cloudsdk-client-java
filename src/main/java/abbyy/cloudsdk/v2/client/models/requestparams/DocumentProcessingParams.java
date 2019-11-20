@@ -15,10 +15,7 @@
 package abbyy.cloudsdk.v2.client.models.requestparams;
 
 import abbyy.cloudsdk.v2.client.models.TaskInfo;
-import abbyy.cloudsdk.v2.client.models.enums.ExportFormat;
-import abbyy.cloudsdk.v2.client.models.enums.ProcessingProfile;
-import abbyy.cloudsdk.v2.client.models.enums.TextType;
-import abbyy.cloudsdk.v2.client.models.enums.WriteTags;
+import abbyy.cloudsdk.v2.client.models.enums.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.UUID;
@@ -65,6 +62,25 @@ public final class DocumentProcessingParams extends RequestParams<TaskInfo> {
      * <b>Note:</b> See <a href="https://www.ocrsdk.com/documentation/specifications/recognition-languages/"/>
      */
     private String language;
+
+    /**
+     * Optional. Default is {@link ImageSource#Auto}. Specifies the source of the image.
+     */
+    private ImageSource imageSource;
+
+    /**
+     * Optional. Default "true". Specifies whether the orientation of the image should be automatically detected and corrected.
+     * <ul>
+     *   <li><b>true</b></li> The page orientation is automatically detected, and if it differs from normal the image is rotated.
+     *   <li><b>false</b></li> The page orientation detection and correction is not performed.
+     * </ul>
+     */
+    private Boolean correctOrientation;
+
+    /**
+     * Optional. Default "true". Specifies whether the skew of the image should be automatically detected and corrected.
+     */
+    private Boolean correctSkew;
 
     /**
      * Optional. Default is {@link WriteTags#Auto}. Specifies whether the result must be written as tagged PDF.
@@ -148,6 +164,30 @@ public final class DocumentProcessingParams extends RequestParams<TaskInfo> {
 
     public void setLanguage(String language) {
         this.language = language;
+    }
+
+    public ImageSource getImageSource() {
+        return imageSource;
+    }
+
+    public void setImageSource(ImageSource imageSource) {
+        this.imageSource = imageSource;
+    }
+
+    public Boolean getCorrectOrientation() {
+        return correctOrientation;
+    }
+
+    public void setCorrectOrientation(Boolean correctOrientation) {
+        this.correctOrientation = correctOrientation;
+    }
+
+    public Boolean getCorrectSkew() {
+        return correctSkew;
+    }
+
+    public void setCorrectSkew(Boolean correctSkew) {
+        this.correctSkew = correctSkew;
     }
 
     public WriteTags getWriteTags() {

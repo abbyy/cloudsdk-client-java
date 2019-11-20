@@ -28,6 +28,11 @@ public final class Application {
     private String id;
 
     /**
+     * Displayed name of the application
+     */
+    private String displayName;
+
+    /**
      * The number of pages remained for processing
      */
     private Integer pages;
@@ -53,6 +58,14 @@ public final class Application {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public Integer getPages() {
