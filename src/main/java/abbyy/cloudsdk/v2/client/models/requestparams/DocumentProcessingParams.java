@@ -46,7 +46,7 @@ public final class DocumentProcessingParams extends RequestParams<TaskInfo> {
     /**
      *  Optional. Default is {@link ProcessingProfile#DocumentConversion}. Specifies a profile with predefined processing settings.
      */
-    private ProcessingProfile processingProfile;
+    private ProcessingProfile profile;
 
     /**
      * Optional. Default is {@link TextType#Normal}. Specifies the type of the text on a page.
@@ -142,12 +142,12 @@ public final class DocumentProcessingParams extends RequestParams<TaskInfo> {
         this.exportFormats = exportFormats;
     }
 
-    public ProcessingProfile getProcessingProfile() {
-        return processingProfile;
+    public ProcessingProfile getProfile() {
+        return profile;
     }
 
-    public void setProcessingProfile(ProcessingProfile processingProfile) {
-        this.processingProfile = processingProfile;
+    public void setProfile(ProcessingProfile profile) {
+        this.profile = profile;
     }
 
     public TextType[] getTextTypes() {
