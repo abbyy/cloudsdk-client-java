@@ -28,10 +28,10 @@ import java.util.concurrent.ExecutionException;
 
 public class Program {
     private static final String HOST = "https://cloud-eu.ocrsdk.com";
-    private static final String APPLICATION_ID = "bd94c184-0652-41f5-ae64-1e183d77df6f";
-    private static final String PASSWORD = "P8qU4xCCiay8MFPdr7o5LPnu";
+    private static final String APPLICATION_ID = "PASTE_APPLICATION_ID";
+    private static final String PASSWORD = "PASTE_APPLICATION_PASSWORD";
 
-    private static final String FILEPATH = "processImage.jpg";
+    private static final String FILEPATH = "PASTE_IMAGE_FILEPATH";
 
 
     private static IOcrClient ocrClient;
