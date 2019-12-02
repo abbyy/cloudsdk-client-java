@@ -69,6 +69,11 @@ public class Serializer {
         List<String> values = new ArrayList<>();
         for (Object element : iterable) {
             String value = element.toString();
+
+            if (element.getClass().isEnum()) {
+                value = getEnumValue(value);
+            }
+
             values.add(value);
         }
         return String.join(",", values);
@@ -78,9 +83,18 @@ public class Serializer {
         List<String> values = new ArrayList<>();
         for (T element : array) {
             String value = element.toString();
+
+            if (element.getClass().isEnum()) {
+                value = getEnumValue(value);
+            }
+
             values.add(value);
         }
         return String.join(",", values);
+    }
+
+    private static String getEnumValue(String value) {
+        return Character.toLowerCase(value.charAt(0)) + value.substring(1);
     }
 
     private static String getFieldName(Field field) {
