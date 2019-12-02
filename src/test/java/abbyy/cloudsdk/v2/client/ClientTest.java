@@ -4,10 +4,9 @@ import abbyy.cloudsdk.v2.client.models.Application;
 import abbyy.cloudsdk.v2.client.models.AuthInfo;
 import abbyy.cloudsdk.v2.client.models.TaskInfo;
 import abbyy.cloudsdk.v2.client.models.TaskList;
-import abbyy.cloudsdk.v2.client.models.enums.BusinessCardExportFormat;
-import abbyy.cloudsdk.v2.client.models.enums.ExportFormat;
-import abbyy.cloudsdk.v2.client.models.enums.TaskStatus;
+import abbyy.cloudsdk.v2.client.models.enums.*;
 import abbyy.cloudsdk.v2.client.models.requestparams.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
@@ -17,379 +16,209 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class ClientTest {
-    private static final String HOST = "https://cloud-eu.ocrsdk.com";
-
-    private static final String APPLICATION_ID = "YOUR_APP_ID";
-    private static final String PASSWORD = "YOUR_APP_PWD";
-
-    private static final String BARCODE_FILEPATH = "";
-    private static final String BUSINESS_CARD_FILEPATH = "";
-    private static final String CHECKMARK_FILEPATH = "";
-    private static final String DOCUMENT_IMAGE_FILEPATH = "";
-    private static final String IMAGE_FILEPATH = "";
-    private static final String MRZ_FILEPATH = "";
-    private static final String RECEIPT_FILEPATH = "";
-    private static final String TEXTFIELD_FILEPATH = "";
-
-    private static final String UNSUPPORTED_FORMAT_FILEPATH = "";
-
-
-    private IOcrClient ocrClient;
-
-    private Comparator<TaskInfo> taskInfoComparator;
+    private TestConfig testConfig;
+    private IOcrClient apiClient;
 
     @Before
-    public void init() {
-        AuthInfo authInfo = new AuthInfo(HOST, APPLICATION_ID, PASSWORD);
-        ocrClient = new OcrClient(authInfo);
+    public void setUp() throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+        File file = new File("src/test/testsettings.json");
+        testConfig = objectMapper.readValue(file, TestConfig.class);
 
-        taskInfoComparator = Comparator.comparing(TaskInfo::getTaskId);
+        apiClient = new OcrClient( new AuthInfo( testConfig.getHost(), testConfig.getApplicationId(), testConfig.getPassword() ) );
     }
 
     @Test
-    public void processImageTest() throws InterruptedException, ExecutionException {
+    public void processImageTest()  throws InterruptedException, ExecutionException {
         try {
-            File file = new File(IMAGE_FILEPATH);
-            FileInputStream fileStream = new FileInputStream(file);
+            FileInputStream fileStream = new FileInputStream(TestFile.IMAGE);
 
-            // creating image processing task
             ImageProcessingParams imageProcessingParams = new ImageProcessingParams();
-            imageProcessingParams.setDescription("Test image");
-            imageProcessingParams.setExportFormats(new ExportFormat[]{ExportFormat.Docx, ExportFormat.Txt});
-            imageProcessingParams.setLanguage("English,French");
+            imageProcessingParams.setLanguage("English");
+            imageProcessingParams.setExportFormats(new ExportFormat[]{ExportFormat.Docx});
 
-            CompletableFuture<TaskInfo> imageProcessingTask = ocrClient.processImageAsync(imageProcessingParams, fileStream, file.getName(), true);
-            TaskInfo imageProcessingTaskInfo = imageProcessingTask.get();
-            Assert.assertNotNull(imageProcessingTaskInfo.getTaskId());
-            Assert.assertEquals(TaskStatus.Completed, imageProcessingTaskInfo.getStatus());
-            Assert.assertEquals(2, imageProcessingTaskInfo.getResultUrls().size());
+            TaskInfo processImageTask = apiClient.processImageAsync(
+                    imageProcessingParams,
+                    fileStream,
+                    TestFile.IMAGE,
+                    true
+            ).get();
 
-            // checking task status
-            CompletableFuture<TaskInfo> taskStatusTask = ocrClient.getTaskStatusAsync(imageProcessingTaskInfo.getTaskId());
-            Assert.assertEquals(TaskStatus.Completed, taskStatusTask.get().getStatus());
+            checkResultTask(processImageTask);
 
-            // checking task list
-            TasksListingParams tasksListingParams = new TasksListingParams();
-
-            CompletableFuture<TaskList> taskListTask = ocrClient.listTasksAsync(tasksListingParams);
-            TaskList taskList = taskListTask.get();
-            Assert.assertNotNull(taskList.getTasks());
-            boolean contains = taskList.getTasks().stream().anyMatch(taskInfo -> taskInfoComparator.compare(taskInfo, imageProcessingTaskInfo) == 0);
-            Assert.assertTrue(contains);
-
-            // deleting task
-            CompletableFuture<TaskInfo> taskDeletionTask = ocrClient.deleteTaskAsync(imageProcessingTaskInfo.getTaskId());
-            TaskInfo imageProcessingTaskInfo2 = taskDeletionTask.get();
-            Assert.assertEquals(0, taskInfoComparator.compare(imageProcessingTaskInfo, imageProcessingTaskInfo2));
-            Assert.assertEquals(TaskStatus.Deleted, imageProcessingTaskInfo2.getStatus());
-
-            // checking finished task list
-            CompletableFuture<TaskList> finishedTaskListTask = ocrClient.listFinishedTaskAsync();
-            TaskList finishedTaskList = finishedTaskListTask.get();
-            if (finishedTaskList.getTasks() != null) {
-                contains = finishedTaskList.getTasks().stream().anyMatch(taskInfo -> taskInfoComparator.compare(taskInfo, imageProcessingTaskInfo) == 0);
-                Assert.assertFalse(contains);
-            }
         } catch (FileNotFoundException e) {
             Assume.assumeNoException(e);
         }
     }
 
     @Test
-    public void processDocumentTest() throws InterruptedException, ExecutionException {
+    public void submitImageTest()  throws InterruptedException, ExecutionException {
         try {
-            File file = new File(DOCUMENT_IMAGE_FILEPATH);
-            FileInputStream fileStream = new FileInputStream(file);
+            TaskInfo first = submitImageAsync(TestFile.IMAGE);
+            TaskInfo second = submitImageAsync(TestFile.FIELDS, first.getTaskId());
 
-            // submitting image
-            ImageSubmittingParams imageSubmittingParams = new ImageSubmittingParams();
-            CompletableFuture<TaskInfo> documentSubmittingTask = ocrClient.submitImageAsync(imageSubmittingParams, fileStream, file.getName());
-            TaskInfo documentProcessingTaskInfo = documentSubmittingTask.get();
-            Assert.assertNotNull(documentProcessingTaskInfo.getTaskId());
-            Assert.assertEquals(TaskStatus.Submitted, documentProcessingTaskInfo.getStatus());
+            Assert.assertEquals(1, first.getFilesCount());
+            Assert.assertEquals(2, second.getFilesCount());
 
-            // processing document
+
+        } catch (FileNotFoundException e) {
+            Assume.assumeNoException(e);
+        }
+    }
+
+    @Test
+    public void processDocumentTest()  throws InterruptedException, ExecutionException {
+        try {
+            TaskInfo submitImageTask = submitImageAsync(TestFile.IMAGE);
+
             DocumentProcessingParams documentProcessingParams = new DocumentProcessingParams();
-            documentProcessingParams.setTaskId(documentProcessingTaskInfo.getTaskId());
+            documentProcessingParams.setTaskId(submitImageTask.getTaskId());
+            documentProcessingParams.setLanguage("English");
+            documentProcessingParams.setProfile(ProcessingProfile.DocumentConversion);
+            documentProcessingParams.setExportFormats(new ExportFormat[]{ExportFormat.PdfSearchable, ExportFormat.Rtf});
 
-            CompletableFuture<TaskInfo> documentProcessingTask = ocrClient.processDocumentAsync(documentProcessingParams, true);
-            TaskInfo documentProcessingTaskInfo2 = documentProcessingTask.get();
+            TaskInfo processDocumentTask = apiClient.processDocumentAsync(documentProcessingParams, true).get();
 
-            Assert.assertNotNull(documentProcessingTaskInfo2.getTaskId());
-            Assert.assertEquals(TaskStatus.Completed, documentProcessingTaskInfo2.getStatus());
-            Assert.assertEquals(1, documentProcessingTaskInfo2.getResultUrls().size());
+            checkResultTask(processDocumentTask, submitImageTask.getTaskId(), 2);
 
-            // checking task status
-            CompletableFuture<TaskInfo> taskStatusTask = ocrClient.getTaskStatusAsync(documentProcessingTaskInfo2.getTaskId());
-            Assert.assertEquals(TaskStatus.Completed, taskStatusTask.get().getStatus());
-
-            // checking task list
-            TasksListingParams tasksListingParams = new TasksListingParams();
-
-            CompletableFuture<TaskList> taskListTask = ocrClient.listTasksAsync(tasksListingParams);
-            TaskList taskList = taskListTask.get();
-            Assert.assertNotNull(taskList.getTasks());
-            boolean contains = taskList.getTasks().stream().anyMatch(taskInfo -> taskInfoComparator.compare(taskInfo, documentProcessingTaskInfo2) == 0);
-            Assert.assertTrue(contains);
-
-            // deleting task
-            CompletableFuture<TaskInfo> taskDeletionTask = ocrClient.deleteTaskAsync(documentProcessingTaskInfo2.getTaskId());
-            TaskInfo documentProcessingTaskInfo3 = taskDeletionTask.get();
-            Assert.assertEquals(0, taskInfoComparator.compare(documentProcessingTaskInfo2, documentProcessingTaskInfo3));
-            Assert.assertEquals(TaskStatus.Deleted, documentProcessingTaskInfo3.getStatus());
-
-            // checking finished task list
-            CompletableFuture<TaskList> finishedTaskListTask = ocrClient.listFinishedTaskAsync();
-            TaskList finishedTaskList = finishedTaskListTask.get();
-            if (finishedTaskList.getTasks() != null) {
-                contains = finishedTaskList.getTasks().stream().anyMatch(taskInfo -> taskInfoComparator.compare(taskInfo, documentProcessingTaskInfo2) == 0);
-                Assert.assertFalse(contains);
-            }
         } catch (FileNotFoundException e) {
             Assume.assumeNoException(e);
         }
     }
 
     @Test
-    public void processBusinessCardTest() throws InterruptedException, ExecutionException {
+    public void processBusinessCardTest()  throws InterruptedException, ExecutionException {
         try {
-            File file = new File(BUSINESS_CARD_FILEPATH);
-            FileInputStream fileStream = new FileInputStream(file);
+            FileInputStream fileStream = new FileInputStream(TestFile.BUSINESS_CARD);
 
-            // creating business card processing task
             BusinessCardProcessingParams businessCardProcessingParams = new BusinessCardProcessingParams();
-            businessCardProcessingParams.setDescription("Test business card");
+            businessCardProcessingParams.setLanguage("English");
             businessCardProcessingParams.setExportFormats(BusinessCardExportFormat.Xml);
 
-            CompletableFuture<TaskInfo> businessCardProcessingTask = ocrClient.processBusinessCardAsync(businessCardProcessingParams, fileStream, file.getName(), true);
-            TaskInfo businessCardProcessingTaskInfo = businessCardProcessingTask.get();
+            TaskInfo processBusinessCardTask = apiClient.processBusinessCardAsync(
+                    businessCardProcessingParams,
+                    fileStream,
+                    TestFile.BUSINESS_CARD,
+                    true
+            ).get();
 
-            Assert.assertNotNull(businessCardProcessingTaskInfo.getTaskId());
-            Assert.assertEquals(TaskStatus.Completed, businessCardProcessingTaskInfo.getStatus());
-            Assert.assertEquals(1, businessCardProcessingTaskInfo.getResultUrls().size());
+            checkResultTask(processBusinessCardTask);
 
-            // checking task status
-            CompletableFuture<TaskInfo> taskStatusTask = ocrClient.getTaskStatusAsync(businessCardProcessingTaskInfo.getTaskId());
-            Assert.assertEquals(TaskStatus.Completed, taskStatusTask.get().getStatus());
-
-            // checking task list
-            TasksListingParams tasksListingParams = new TasksListingParams();
-
-            CompletableFuture<TaskList> taskListTask = ocrClient.listTasksAsync(tasksListingParams);
-            TaskList taskList = taskListTask.get();
-            Assert.assertNotNull(taskList.getTasks());
-            boolean contains = taskList.getTasks().stream().anyMatch(taskInfo -> taskInfoComparator.compare(taskInfo, businessCardProcessingTaskInfo) == 0);
-            Assert.assertTrue(contains);
-
-            // deleting task
-            CompletableFuture<TaskInfo> taskDeletionTask = ocrClient.deleteTaskAsync(businessCardProcessingTaskInfo.getTaskId());
-            TaskInfo businessCardProcessingTaskInfo2 = taskDeletionTask.get();
-            Assert.assertEquals(0, taskInfoComparator.compare(businessCardProcessingTaskInfo, businessCardProcessingTaskInfo2));
-            Assert.assertEquals(TaskStatus.Deleted, businessCardProcessingTaskInfo2.getStatus());
-
-            // checking finished task list
-            CompletableFuture<TaskList> finishedTaskListTask = ocrClient.listFinishedTaskAsync();
-            TaskList finishedTaskList = finishedTaskListTask.get();
-            if (finishedTaskList.getTasks() != null) {
-                contains = finishedTaskList.getTasks().stream().anyMatch(taskInfo -> taskInfoComparator.compare(taskInfo, businessCardProcessingTaskInfo) == 0);
-                Assert.assertFalse(contains);
-            }
         } catch (FileNotFoundException e) {
             Assume.assumeNoException(e);
         }
     }
 
     @Test
-    public void processTextFieldTest() throws InterruptedException, ExecutionException {
+    public void processTextFieldTest()  throws InterruptedException, ExecutionException {
         try {
-            File file = new File(TEXTFIELD_FILEPATH);
-            FileInputStream fileStream = new FileInputStream(file);
+            FileInputStream fileStream = new FileInputStream(TestFile.BUSINESS_CARD);
 
-            // creating text field processing task
             TextFieldProcessingParams textFieldProcessingParams = new TextFieldProcessingParams();
-            textFieldProcessingParams.setDescription("Test textfield");
+            textFieldProcessingParams.setLanguage("English");
+            textFieldProcessingParams.setRegion("140,550,1130,700");
 
-            CompletableFuture<TaskInfo> textFieldProcessingTask = ocrClient.processTextFieldAsync(textFieldProcessingParams, fileStream, file.getName(), true);
-            TaskInfo textFieldProcessingTaskInfo = textFieldProcessingTask.get();
+            TaskInfo processTextFieldTask = apiClient.processTextFieldAsync(
+                    textFieldProcessingParams,
+                    fileStream,
+                    TestFile.BUSINESS_CARD,
+                    true
+            ).get();
 
-            Assert.assertNotNull(textFieldProcessingTaskInfo.getTaskId());
-            Assert.assertEquals(TaskStatus.Completed, textFieldProcessingTaskInfo.getStatus());
-            Assert.assertEquals(1, textFieldProcessingTaskInfo.getResultUrls().size());
+            checkResultTask(processTextFieldTask);
 
-            // checking task status
-            CompletableFuture<TaskInfo> taskStatusTask = ocrClient.getTaskStatusAsync(textFieldProcessingTaskInfo.getTaskId());
-            Assert.assertEquals(TaskStatus.Completed, taskStatusTask.get().getStatus());
-
-            // checking task list
-            TasksListingParams tasksListingParams = new TasksListingParams();
-
-            CompletableFuture<TaskList> taskListTask = ocrClient.listTasksAsync(tasksListingParams);
-            TaskList taskList = taskListTask.get();
-            Assert.assertNotNull(taskList.getTasks());
-            boolean contains = taskList.getTasks().stream().anyMatch(taskInfo -> taskInfoComparator.compare(taskInfo, textFieldProcessingTaskInfo) == 0);
-            Assert.assertTrue(contains);
-
-            // deleting task
-            CompletableFuture<TaskInfo> taskDeletionTask = ocrClient.deleteTaskAsync(textFieldProcessingTaskInfo.getTaskId());
-            TaskInfo textFieldProcessingTaskInfo2 = taskDeletionTask.get();
-            Assert.assertEquals(0, taskInfoComparator.compare(textFieldProcessingTaskInfo, textFieldProcessingTaskInfo2));
-            Assert.assertEquals(TaskStatus.Deleted, textFieldProcessingTaskInfo2.getStatus());
-
-            // checking finished task list
-            CompletableFuture<TaskList> finishedTaskListTask = ocrClient.listFinishedTaskAsync();
-            TaskList finishedTaskList = finishedTaskListTask.get();
-            if (finishedTaskList.getTasks() != null) {
-                contains = finishedTaskList.getTasks().stream().anyMatch(taskInfo -> taskInfoComparator.compare(taskInfo, textFieldProcessingTaskInfo) == 0);
-                Assert.assertFalse(contains);
-            }
         } catch (FileNotFoundException e) {
             Assume.assumeNoException(e);
         }
     }
 
     @Test
-    public void processBarcodeFieldTest() throws InterruptedException, ExecutionException {
+    public void processBarcodeFieldTest()  throws InterruptedException, ExecutionException {
         try {
-            File file = new File(BARCODE_FILEPATH);
-            FileInputStream fileStream = new FileInputStream(file);
+            FileInputStream fileStream = new FileInputStream(TestFile.FIELDS);
 
-            // creating barcode processing task
             BarcodeFieldProcessingParams barcodeFieldProcessingParams = new BarcodeFieldProcessingParams();
-            barcodeFieldProcessingParams.setDescription("Test barcode");
+            barcodeFieldProcessingParams.setBarcodeTypes(new BarcodeType[]{BarcodeType.Ean8});
+            barcodeFieldProcessingParams.setRegion("1800,3200,2250,3400");
 
-            CompletableFuture<TaskInfo> barcodeProcessingTask = ocrClient.processBarcodeFieldAsync(barcodeFieldProcessingParams, fileStream, file.getName(), true);
-            TaskInfo barcodeProcessingTaskInfo = barcodeProcessingTask.get();
+            TaskInfo processBarcodeFieldTask = apiClient.processBarcodeFieldAsync(
+                    barcodeFieldProcessingParams,
+                    fileStream,
+                    TestFile.FIELDS,
+                    true
+            ).get();
 
-            Assert.assertNotNull(barcodeProcessingTaskInfo.getTaskId());
-            Assert.assertEquals(TaskStatus.Completed, barcodeProcessingTaskInfo.getStatus());
-            Assert.assertEquals(1, barcodeProcessingTaskInfo.getResultUrls().size());
+            checkResultTask(processBarcodeFieldTask);
 
-            // checking task status
-            CompletableFuture<TaskInfo> taskStatusTask = ocrClient.getTaskStatusAsync(barcodeProcessingTaskInfo.getTaskId());
-            Assert.assertEquals(TaskStatus.Completed, taskStatusTask.get().getStatus());
-
-            // checking task list
-            TasksListingParams tasksListingParams = new TasksListingParams();
-
-            CompletableFuture<TaskList> taskListTask = ocrClient.listTasksAsync(tasksListingParams);
-            TaskList taskList = taskListTask.get();
-            Assert.assertNotNull(taskList.getTasks());
-            boolean contains = taskList.getTasks().stream().anyMatch(taskInfo -> taskInfoComparator.compare(taskInfo, barcodeProcessingTaskInfo) == 0);
-            Assert.assertTrue(contains);
-
-            // deleting task
-            CompletableFuture<TaskInfo> taskDeletionTask = ocrClient.deleteTaskAsync(barcodeProcessingTaskInfo.getTaskId());
-            TaskInfo barcodeProcessingTaskInfo2 = taskDeletionTask.get();
-            Assert.assertEquals(0, taskInfoComparator.compare(barcodeProcessingTaskInfo, barcodeProcessingTaskInfo2));
-            Assert.assertEquals(TaskStatus.Deleted, barcodeProcessingTaskInfo2.getStatus());
-
-            // checking finished task list
-            CompletableFuture<TaskList> finishedTaskListTask = ocrClient.listFinishedTaskAsync();
-            TaskList finishedTaskList = finishedTaskListTask.get();
-            if (finishedTaskList.getTasks() != null) {
-                contains = finishedTaskList.getTasks().stream().anyMatch(taskInfo -> taskInfoComparator.compare(taskInfo, barcodeProcessingTaskInfo) == 0);
-                Assert.assertFalse(contains);
-            }
         } catch (FileNotFoundException e) {
             Assume.assumeNoException(e);
         }
     }
 
     @Test
-    public void processCheckmarkFieldTest() throws InterruptedException, ExecutionException {
+    public void processCheckmarkFieldTest()  throws InterruptedException, ExecutionException {
         try {
-            File file = new File(CHECKMARK_FILEPATH);
-            FileInputStream fileStream = new FileInputStream(file);
+            FileInputStream fileStream = new FileInputStream(TestFile.FIELDS);
 
-            // creating checkmark field processing task
             CheckmarkFieldProcessingParams checkmarkFieldProcessingParams = new CheckmarkFieldProcessingParams();
-            checkmarkFieldProcessingParams.setDescription("Test checkmark");
+            checkmarkFieldProcessingParams.setCheckmarkType(CheckmarkType.Square);
+            checkmarkFieldProcessingParams.setRegion("700,930,800,1030");
 
-            CompletableFuture<TaskInfo> icheckmarkFieldProcessingTask = ocrClient.processCheckmarkFieldAsync(checkmarkFieldProcessingParams, fileStream, file.getName(), true);
-            TaskInfo checkmarkFieldProcessingTaskInfo = icheckmarkFieldProcessingTask.get();
+            TaskInfo processCheckmarkFieldTask = apiClient.processCheckmarkFieldAsync(
+                    checkmarkFieldProcessingParams,
+                    fileStream,
+                    TestFile.FIELDS,
+                    true
+            ).get();
 
-            Assert.assertNotNull(checkmarkFieldProcessingTaskInfo.getTaskId());
-            Assert.assertEquals(TaskStatus.Completed, checkmarkFieldProcessingTaskInfo.getStatus());
-            Assert.assertEquals(1, checkmarkFieldProcessingTaskInfo.getResultUrls().size());
+            checkResultTask(processCheckmarkFieldTask);
 
-            // checking task status
-            CompletableFuture<TaskInfo> taskStatusTask = ocrClient.getTaskStatusAsync(checkmarkFieldProcessingTaskInfo.getTaskId());
-            Assert.assertEquals(TaskStatus.Completed, taskStatusTask.get().getStatus());
-
-            // checking task list
-            TasksListingParams tasksListingParams = new TasksListingParams();
-
-            CompletableFuture<TaskList> taskListTask = ocrClient.listTasksAsync(tasksListingParams);
-            TaskList taskList = taskListTask.get();
-            Assert.assertNotNull(taskList.getTasks());
-            boolean contains = taskList.getTasks().stream().anyMatch(taskInfo -> taskInfoComparator.compare(taskInfo, checkmarkFieldProcessingTaskInfo) == 0);
-            Assert.assertTrue(contains);
-
-            // deleting task
-            CompletableFuture<TaskInfo> taskDeletionTask = ocrClient.deleteTaskAsync(checkmarkFieldProcessingTaskInfo.getTaskId());
-            TaskInfo checkmarkFieldProcessingTaskInfo2 = taskDeletionTask.get();
-            Assert.assertEquals(0, taskInfoComparator.compare(checkmarkFieldProcessingTaskInfo, checkmarkFieldProcessingTaskInfo2));
-            Assert.assertEquals(TaskStatus.Deleted, checkmarkFieldProcessingTaskInfo2.getStatus());
-
-            // checking finished task list
-            CompletableFuture<TaskList> finishedTaskListTask = ocrClient.listFinishedTaskAsync();
-            TaskList finishedTaskList = finishedTaskListTask.get();
-            if (finishedTaskList.getTasks() != null) {
-                contains = finishedTaskList.getTasks().stream().anyMatch(taskInfo -> taskInfoComparator.compare(taskInfo, checkmarkFieldProcessingTaskInfo) == 0);
-                Assert.assertFalse(contains);
-            }
         } catch (FileNotFoundException e) {
             Assume.assumeNoException(e);
         }
     }
 
     @Test
-    public void processMrzTest() throws InterruptedException, ExecutionException {
+    public void processFieldsTest()  throws InterruptedException, ExecutionException {
         try {
-            File file = new File(MRZ_FILEPATH);
-            FileInputStream fileStream = new FileInputStream(file);
+            FileInputStream fileStream = new FileInputStream(TestFile.FIELDS_XML_CONFIG);
 
-            // creating mrz processing task
+            TaskInfo submitImageTask = submitImageAsync(TestFile.FIELDS);
+
+            FieldsProcessingParams fieldProcessingParams = new FieldsProcessingParams();
+            fieldProcessingParams.setTaskId(submitImageTask.getTaskId());
+            fieldProcessingParams.setWriteRecognitionVariants(true);
+
+            TaskInfo processFieldsTask = apiClient.processFieldsAsync(fieldProcessingParams, fileStream, TestFile.FIELDS_XML_CONFIG, true).get();
+
+            checkResultTask(processFieldsTask, submitImageTask.getTaskId());
+
+        } catch (FileNotFoundException e) {
+            Assume.assumeNoException(e);
+        }
+    }
+
+    @Test
+    public void processMrzTest()  throws InterruptedException, ExecutionException {
+        try {
+            FileInputStream fileStream = new FileInputStream(TestFile.MRZ);
+
             MrzProcessingParams mrzProcessingParams = new MrzProcessingParams();
-            mrzProcessingParams.setDescription("Test barcode");
+            mrzProcessingParams.setDescription("Task description: MRZ processing.");
+            mrzProcessingParams.setPdfPassword("test");
 
-            CompletableFuture<TaskInfo> mrzProcessingTask = ocrClient.processMrzAsync(mrzProcessingParams, fileStream, file.getName(), true);
-            TaskInfo mrzProcessingTaskInfo = mrzProcessingTask.get();
+            TaskInfo processMrzTask = apiClient.processMrzAsync(
+                    mrzProcessingParams,
+                    fileStream,
+                    TestFile.FIELDS,
+                    true
+            ).get();
 
-            Assert.assertNotNull(mrzProcessingTaskInfo.getTaskId());
-            Assert.assertEquals(TaskStatus.Completed, mrzProcessingTaskInfo.getStatus());
-            Assert.assertEquals(1, mrzProcessingTaskInfo.getResultUrls().size());
+            checkResultTask(processMrzTask);
 
-            // checking task status
-            CompletableFuture<TaskInfo> taskStatusTask = ocrClient.getTaskStatusAsync(mrzProcessingTaskInfo.getTaskId());
-            Assert.assertEquals(TaskStatus.Completed, taskStatusTask.get().getStatus());
-
-            // checking task list
-            TasksListingParams tasksListingParams = new TasksListingParams();
-
-            CompletableFuture<TaskList> taskListTask = ocrClient.listTasksAsync(tasksListingParams);
-            TaskList taskList = taskListTask.get();
-            Assert.assertNotNull(taskList.getTasks());
-            boolean contains = taskList.getTasks().stream().anyMatch(taskInfo -> taskInfoComparator.compare(taskInfo, mrzProcessingTaskInfo) == 0);
-            Assert.assertTrue(contains);
-
-            // deleting task
-            CompletableFuture<TaskInfo> taskDeletionTask = ocrClient.deleteTaskAsync(mrzProcessingTaskInfo.getTaskId());
-            TaskInfo mrzProcessingTaskInfo2 = taskDeletionTask.get();
-            Assert.assertEquals(0, taskInfoComparator.compare(mrzProcessingTaskInfo, mrzProcessingTaskInfo2));
-            Assert.assertEquals(TaskStatus.Deleted, mrzProcessingTaskInfo2.getStatus());
-
-            // checking finished task list
-            CompletableFuture<TaskList> finishedTaskListTask = ocrClient.listFinishedTaskAsync();
-            TaskList finishedTaskList = finishedTaskListTask.get();
-            if (finishedTaskList.getTasks() != null) {
-                contains = finishedTaskList.getTasks().stream().anyMatch(taskInfo -> taskInfoComparator.compare(taskInfo, mrzProcessingTaskInfo) == 0);
-                Assert.assertFalse(contains);
-            }
         } catch (FileNotFoundException e) {
             Assume.assumeNoException(e);
         }
@@ -398,59 +227,128 @@ public class ClientTest {
     @Test
     public void processReceiptTest() throws InterruptedException, ExecutionException {
         try {
-            File file = new File(RECEIPT_FILEPATH);
-            FileInputStream fileStream = new FileInputStream(file);
+            FileInputStream fileStream = new FileInputStream(TestFile.IMAGE);
 
-            // creating receipt processing task
             ReceiptProccessingParams receiptProccessingParams = new ReceiptProccessingParams();
-            receiptProccessingParams.setDescription("Test receipt");
+            receiptProccessingParams.setCountries(new ReceiptRecognizingCountry[]{ReceiptRecognizingCountry.Russia});
 
-            CompletableFuture<TaskInfo> receiptProccessingTask = ocrClient.processReceiptAsync(receiptProccessingParams, fileStream, file.getName(), true);
-            TaskInfo receiptProccessingTaskInfo = receiptProccessingTask.get();
+            TaskInfo processReceiptTask = apiClient.processReceiptAsync(
+                    receiptProccessingParams,
+                    fileStream,
+                    TestFile.FIELDS,
+                    true
+            ).get();
 
-            Assert.assertNotNull(receiptProccessingTaskInfo.getTaskId());
-            Assert.assertEquals(TaskStatus.Completed, receiptProccessingTaskInfo.getStatus());
-            Assert.assertEquals(1, receiptProccessingTaskInfo.getResultUrls().size());
+            checkResultTask(processReceiptTask);
 
-            // checking task status
-            CompletableFuture<TaskInfo> taskStatusTask = ocrClient.getTaskStatusAsync(receiptProccessingTaskInfo.getTaskId());
-            Assert.assertEquals(TaskStatus.Completed, taskStatusTask.get().getStatus());
-
-            // checking task list
-            TasksListingParams tasksListingParams = new TasksListingParams();
-
-            CompletableFuture<TaskList> taskListTask = ocrClient.listTasksAsync(tasksListingParams);
-            TaskList taskList = taskListTask.get();
-            Assert.assertNotNull(taskList.getTasks());
-            boolean contains = taskList.getTasks().stream().anyMatch(taskInfo -> taskInfoComparator.compare(taskInfo, receiptProccessingTaskInfo) == 0);
-            Assert.assertTrue(contains);
-
-            // deleting task
-            CompletableFuture<TaskInfo> taskDeletionTask = ocrClient.deleteTaskAsync(receiptProccessingTaskInfo.getTaskId());
-            TaskInfo receiptProccessingTaskInfo2 = taskDeletionTask.get();
-            Assert.assertEquals(0, taskInfoComparator.compare(receiptProccessingTaskInfo, receiptProccessingTaskInfo2));
-            Assert.assertEquals(TaskStatus.Deleted, receiptProccessingTaskInfo2.getStatus());
-
-            // checking finished task list
-            CompletableFuture<TaskList> finishedTaskListTask = ocrClient.listFinishedTaskAsync();
-            TaskList finishedTaskList = finishedTaskListTask.get();
-            if (finishedTaskList.getTasks() != null) {
-                contains = finishedTaskList.getTasks().stream().anyMatch(taskInfo -> taskInfoComparator.compare(taskInfo, receiptProccessingTaskInfo) == 0);
-                Assert.assertFalse(contains);
-            }
         } catch (FileNotFoundException e) {
             Assume.assumeNoException(e);
         }
     }
 
     @Test
-    public void applicationInfoTest() throws ExecutionException, InterruptedException {
-        CompletableFuture<Application> applicationInfo = ocrClient.getApplicationInfoAsync();
-        Application application = applicationInfo.get();
-        Assert.assertNotNull(application);
-        Assert.assertNotNull(application.getId());
+    public void getTaskStatusTest() throws InterruptedException, ExecutionException {
+        try {
+            TaskInfo submitImageTask = submitImageAsync(TestFile.IMAGE);
+            TaskInfo resultTask = apiClient.getTaskStatusAsync(submitImageTask.getTaskId()).get();
+
+            Assert.assertNotNull(resultTask);
+            Assert.assertEquals(submitImageTask.getTaskId(), resultTask.getTaskId());
+            Assert.assertEquals(TaskStatus.Submitted, resultTask.getStatus());
+
+        } catch (FileNotFoundException e) {
+            Assume.assumeNoException(e);
+        }
     }
 
+    @Test
+    public void deleteTaskTest() throws InterruptedException, ExecutionException {
+        try {
+            TaskInfo submitImageTask = submitImageAsync(TestFile.IMAGE);
+            TaskInfo deletedTask = apiClient.deleteTaskAsync(submitImageTask.getTaskId()).get();
+            TaskInfo resultTask = apiClient.getTaskStatusAsync(deletedTask.getTaskId()).get();
+
+            Assert.assertNotNull(deletedTask);
+            Assert.assertNotNull(resultTask);
+
+            Assert.assertEquals(submitImageTask.getTaskId(), deletedTask.getTaskId());
+            Assert.assertEquals(deletedTask.getTaskId(), resultTask.getTaskId());
+
+            Assert.assertEquals(TaskStatus.Submitted, submitImageTask.getStatus());
+            Assert.assertEquals(TaskStatus.Deleted, deletedTask.getStatus());
+            Assert.assertEquals(TaskStatus.Deleted, resultTask.getStatus());
+
+        } catch (FileNotFoundException e) {
+            Assume.assumeNoException(e);
+        }
+    }
+
+    @Test
+    public void listTasksTest() throws InterruptedException, ExecutionException {
+        try {
+            TaskInfo submitImageTask = submitImageAsync(TestFile.IMAGE);
+
+            TasksListingParams tasksListingParams = new TasksListingParams();
+            tasksListingParams.setExcludeDeleted(true);
+
+            TaskList taskList = apiClient.listTasksAsync(tasksListingParams).get();
+
+            Assert.assertNotNull(taskList);
+            Assert.assertTrue(taskList.getTasks().size() > 0);
+            Assert.assertTrue(taskList.getTasks().stream()
+                    .anyMatch(task -> task.getTaskId().equals(submitImageTask.getTaskId())));
+
+        } catch (FileNotFoundException e) {
+            Assume.assumeNoException(e);
+        }
+    }
+
+    @Test
+    public void listFinishedTasksTest() throws InterruptedException, ExecutionException {
+        try {
+            FileInputStream fileStream = new FileInputStream(TestFile.IMAGE);
+
+            TaskInfo submitImageTask = submitImageAsync(TestFile.IMAGE);
+
+            TaskInfo processImageTask = apiClient.processImageAsync(
+                    new ImageProcessingParams(),
+                    fileStream,
+                    TestFile.IMAGE,
+                    true
+            ).get();
+
+            TaskList listFinishedTasks = apiClient.listFinishedTaskAsync().get();
+
+            Assert.assertNotNull(listFinishedTasks);
+
+            Assert.assertTrue(listFinishedTasks.getTasks().size() > 0);
+            Assert.assertTrue(listFinishedTasks.getTasks().size() <= 100);
+
+            Assert.assertFalse(listFinishedTasks.getTasks().stream().anyMatch(task -> task.getTaskId().equals(submitImageTask.getTaskId())));
+            Assert.assertTrue(listFinishedTasks.getTasks().stream().anyMatch(task -> task.getTaskId().equals(processImageTask.getTaskId())));
+
+            TasksListingParams tasksListingParams = new TasksListingParams();
+            tasksListingParams.setExcludeDeleted(true);
+
+            TaskList taskList = apiClient.listTasksAsync(tasksListingParams).get();
+
+            Assert.assertNotNull(taskList);
+            Assert.assertTrue(taskList.getTasks().size() > 0);
+            Assert.assertTrue(taskList.getTasks().stream()
+                    .anyMatch(task -> task.getTaskId().equals(submitImageTask.getTaskId())));
+
+        } catch (FileNotFoundException e) {
+            Assume.assumeNoException(e);
+        }
+    }
+
+    @Test
+    public void getApplicationInfoTest() throws InterruptedException, ExecutionException {
+        Application application = apiClient.getApplicationInfoAsync().get();
+
+        Assert.assertNotNull(application);
+        Assert.assertEquals(testConfig.getApplicationId(), application.getId());
+    }
 
     @Test
     public void invalidTaskIdTest() throws Throwable {
@@ -459,8 +357,8 @@ public class ClientTest {
         try {
             try {
                 UUID invalidTaskId = UUID.randomUUID();
-                CompletableFuture<TaskInfo> taskStatusTask = ocrClient.getTaskStatusAsync(invalidTaskId);
-                taskStatusTask.get();
+                apiClient.getTaskStatusAsync(invalidTaskId).get();
+
                 Assert.fail("ApiException expected");
             } catch (ExecutionException e) {
                 throw e.getCause();
@@ -474,8 +372,8 @@ public class ClientTest {
     public void nullTaskIdTest() throws Throwable {
         try {
             try {
-                CompletableFuture<TaskInfo> taskStatusTask = ocrClient.getTaskStatusAsync(null);
-                taskStatusTask.get();
+                apiClient.getTaskStatusAsync(null).get();
+
                 Assert.fail("ApiException expected");
             } catch (ExecutionException e) {
                 throw e.getCause();
@@ -489,16 +387,18 @@ public class ClientTest {
     public void invalidRegionTest() throws Throwable {
         try {
             try {
-                File file = new File(BARCODE_FILEPATH);
-                FileInputStream fileStream = new FileInputStream(file);
+                FileInputStream fileStream = new FileInputStream(TestFile.FIELDS);
 
-                // creating barcode processing task
                 BarcodeFieldProcessingParams barcodeFieldProcessingParams = new BarcodeFieldProcessingParams();
-                barcodeFieldProcessingParams.setDescription("Test barcode");
                 barcodeFieldProcessingParams.setRegion("some_invalid_region");
 
-                CompletableFuture<TaskInfo> barcodeProcessingTask = ocrClient.processBarcodeFieldAsync(barcodeFieldProcessingParams, fileStream, file.getName(), true);
-                barcodeProcessingTask.get();
+                apiClient.processBarcodeFieldAsync(
+                        barcodeFieldProcessingParams,
+                        fileStream,
+                        TestFile.FIELDS,
+                        true
+                ).get();
+
                 Assert.fail("ApiException expected");
             } catch (ExecutionException e) {
                 throw e.getCause();
@@ -514,15 +414,17 @@ public class ClientTest {
     public void unsupportedFormatTest() throws Throwable {
         try {
             try {
-                File file = new File(UNSUPPORTED_FORMAT_FILEPATH);
-                FileInputStream fileStream = new FileInputStream(file);
+                FileInputStream fileStream = new FileInputStream(TestFile.UNSUPPORTED_FORMAT);
 
-                // creating barcode processing task
                 BarcodeFieldProcessingParams barcodeFieldProcessingParams = new BarcodeFieldProcessingParams();
-                barcodeFieldProcessingParams.setDescription("Test barcode");
 
-                CompletableFuture<TaskInfo> barcodeProcessingTask = ocrClient.processBarcodeFieldAsync(barcodeFieldProcessingParams, fileStream, file.getName(), true);
-                barcodeProcessingTask.get();
+                apiClient.processBarcodeFieldAsync(
+                        barcodeFieldProcessingParams,
+                        fileStream,
+                        TestFile.UNSUPPORTED_FORMAT,
+                        true
+                ).get();
+
                 Assert.fail("ApiException expected");
             } catch (ExecutionException e) {
                 throw e.getCause();
@@ -538,12 +440,15 @@ public class ClientTest {
     public void noImageTest() throws Throwable {
         try {
             try {
-                // creating barcode processing task
                 BarcodeFieldProcessingParams barcodeFieldProcessingParams = new BarcodeFieldProcessingParams();
-                barcodeFieldProcessingParams.setDescription("Test barcode");
 
-                CompletableFuture<TaskInfo> barcodeProcessingTask = ocrClient.processBarcodeFieldAsync(barcodeFieldProcessingParams, null, null, true);
-                barcodeProcessingTask.get();
+                apiClient.processBarcodeFieldAsync(
+                        barcodeFieldProcessingParams,
+                        null,
+                        null,
+                        true
+                ).get();
+
                 Assert.fail("ApiException expected");
             } catch (ExecutionException e) {
                 throw e.getCause();
@@ -553,5 +458,47 @@ public class ClientTest {
         } catch (ApiException e) {
             ShouldHelper.checkException(e, ErrorCode.InvalidArgument, ValidationErrorCode.MissingArgument, ErrorTarget.File);
         }
+    }
+
+    private TaskInfo submitImageAsync(String fileName) throws FileNotFoundException, InterruptedException, ExecutionException {
+        return submitImageAsync(fileName, null);
+    }
+
+    private TaskInfo submitImageAsync(String fileName, UUID taskId) throws FileNotFoundException, InterruptedException, ExecutionException {
+        FileInputStream fileStream = new FileInputStream(fileName);
+
+        ImageSubmittingParams imageSubmittingParams = new ImageSubmittingParams();
+        imageSubmittingParams.setTaskId(taskId);
+
+        TaskInfo submitImageTask = apiClient.submitImageAsync(imageSubmittingParams, fileStream, fileName).get();
+        Assert.assertNotNull(submitImageTask);
+        Assert.assertNotEquals(new UUID(0L, 0L), submitImageTask.getTaskId());
+        Assert.assertEquals(TaskStatus.Submitted, submitImageTask.getStatus());
+
+        return submitImageTask;
+    }
+
+    private static void checkResultTask(TaskInfo taskInfo) {
+        checkResultTask(taskInfo, null, 1, TaskStatus.Completed);
+    }
+
+    private static void checkResultTask(TaskInfo taskInfo, UUID taskId) {
+        checkResultTask(taskInfo, taskId, 1, TaskStatus.Completed);
+    }
+
+    private static void checkResultTask(TaskInfo taskInfo, UUID taskId, int resultUrls) {
+        checkResultTask(taskInfo, taskId, resultUrls, TaskStatus.Completed);
+    }
+
+    private static void checkResultTask(TaskInfo taskInfo, UUID taskId, int resultUrls, TaskStatus taskStatus) {
+        Assert.assertNotNull(taskInfo);
+        Assert.assertNotEquals(new UUID(0L, 0L), taskId);
+
+        if (taskId != null) {
+            Assert.assertEquals(taskId, taskInfo.getTaskId());
+        }
+
+        Assert.assertEquals(taskStatus, taskInfo.getStatus());
+        Assert.assertEquals(resultUrls, taskInfo.getResultUrls().size());
     }
 }
