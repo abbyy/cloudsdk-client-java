@@ -1,0 +1,5 @@
+{
+  "host": "https://cloud-eu.ocrsdk.com",
+  "applicationId": "PASTE_APPLICATION_ID",
+  "password": "PASTE_APPLICATION_PASSWORD"
+}

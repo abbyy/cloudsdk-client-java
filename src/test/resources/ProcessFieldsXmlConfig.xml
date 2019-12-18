@@ -1,0 +1,24 @@
+<document xmlns="http://ocrsdk.com/schema/taskDescription-1.0.xsd"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://ocrsdk.com/schema/taskDescription-1.0.xsd taskDescription.xsd">
+
+  <fieldTemplates>
+    <checkmark id="defaultCheckmark">
+      <type>square</type>
+    </checkmark>
+  </fieldTemplates>
+
+  <page applyTo="0">
+    <barcode id="bottomBarcode" left="1800" top="3200" right="2250" bottom="3400">
+      <type>autodetect</type>
+    </barcode>
+
+    <text id="title" left="900" top="100" right="2200" bottom="200">
+      <textType>normal</textType>
+    </text>
+
+    <checkmark id="healthcareCheckmark" template="defaultCheckmark" left="1050" top="930" right="1150" bottom="1030" />
+    <checkmark id="invoicesCheckmark" template="defaultCheckmark" left="780" top="1315" right="850" bottom="1400" />
+  </page>
+
+</document>
