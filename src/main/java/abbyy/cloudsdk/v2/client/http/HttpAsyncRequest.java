@@ -17,6 +17,7 @@ package abbyy.cloudsdk.v2.client.http;
 import abbyy.cloudsdk.v2.client.Serializer;
 
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,7 +59,7 @@ public class HttpAsyncRequest<T> {
         this.fileWrapper = fileWrapper;
     }
 
-    public static <T> HttpAsyncRequest<T> buildRequest(HttpRequestMethod method, String requestUrl, Object params, FileInputStream fileStream, String fileName) {
+    public static <T> HttpAsyncRequest<T> buildRequest(HttpRequestMethod method, String requestUrl, Object params, InputStream fileStream, String fileName) {
         HttpAsyncRequest<T> request = new HttpAsyncRequest<>();
         request.setMethod(method);
         request.setRequestUri(buildRequestUri(requestUrl, params));

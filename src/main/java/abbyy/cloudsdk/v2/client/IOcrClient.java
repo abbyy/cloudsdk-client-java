@@ -21,7 +21,7 @@ import abbyy.cloudsdk.v2.client.models.enums.ProcessingProfile;
 import abbyy.cloudsdk.v2.client.models.enums.TaskStatus;
 import abbyy.cloudsdk.v2.client.models.requestparams.*;
 
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -44,27 +44,27 @@ public interface IOcrClient {
      * @param waitTaskFinished Indicates whether to wait until task is finished.
      * @return {@link TaskInfo}
      */
-    CompletableFuture<TaskInfo> processImageAsync(ImageProcessingParams parameters, FileInputStream fileStream, String fileName,
+    CompletableFuture<TaskInfo> processImageAsync(ImageProcessingParams parameters, InputStream fileStream, String fileName,
                                                   boolean waitTaskFinished);
 
     /**
      * The method adds the image to the existing task or creates a new task for the image. This task is not passed for processing until
      * the {@link #processDocumentAsync(DocumentProcessingParams, boolean)} or
-     * {@link #processFieldsAsync(FieldsProcessingParams, FileInputStream, String, boolean)} method is called for it.
+     * {@link #processFieldsAsync(FieldsProcessingParams, InputStream, String, boolean)} method is called for it.
      * Several images can be uploaded to one task
      * @param parameters Image submitting parameters
      * @param fileStream Stream of the file with the image to recognize
      * @param fileName Name of the file with the image
      * @return {@link TaskInfo}
      */
-    CompletableFuture<TaskInfo> submitImageAsync(ImageSubmittingParams parameters, FileInputStream fileStream, String fileName);
+    CompletableFuture<TaskInfo> submitImageAsync(ImageSubmittingParams parameters, InputStream fileStream, String fileName);
 
 
     /**
      * The method starts the processing task with the specified parameters.
      *
      * <b>Note:</b> This method allows you to process several images using the same settings and obtain recognition
-     * result as a multi-page document. You can upload several images to one task using {@link #submitImageAsync(ImageSubmittingParams, FileInputStream, String)} method.
+     * result as a multi-page document. You can upload several images to one task using {@link #submitImageAsync(ImageSubmittingParams, InputStream, String)} method.
      * It is also possible to specify up to three file formats for the result, in which case the server response for the completed
      * task will contain several result URLs. Only the task with {@link TaskStatus#Submitted},
      * {@link TaskStatus#Completed} or {@link TaskStatus#NotEnoughCredits}
@@ -85,7 +85,7 @@ public interface IOcrClient {
      * @param waitTaskFinished Indicates whether to wait until task is finished.
      * @return {@link TaskInfo}
      */
-    CompletableFuture<TaskInfo> processBusinessCardAsync(BusinessCardProcessingParams parameters, FileInputStream fileStream,
+    CompletableFuture<TaskInfo> processBusinessCardAsync(BusinessCardProcessingParams parameters, InputStream fileStream,
                                                          String fileName, boolean waitTaskFinished);
 
     /**
@@ -102,7 +102,7 @@ public interface IOcrClient {
      * @param waitTaskFinished Indicates whether to wait until task is finished.
      * @return {@link TaskInfo}
      */
-    CompletableFuture<TaskInfo> processTextFieldAsync(TextFieldProcessingParams parameters, FileInputStream fileStream,
+    CompletableFuture<TaskInfo> processTextFieldAsync(TextFieldProcessingParams parameters, InputStream fileStream,
                                            String fileName, boolean waitTaskFinished);
 
     /**
@@ -121,7 +121,7 @@ public interface IOcrClient {
      * @param waitTaskFinished Indicates whether to wait until task is finished.
      * @return {@link TaskInfo}
      */
-    CompletableFuture<TaskInfo> processBarcodeFieldAsync(BarcodeFieldProcessingParams parameters, FileInputStream fileStream,
+    CompletableFuture<TaskInfo> processBarcodeFieldAsync(BarcodeFieldProcessingParams parameters, InputStream fileStream,
                                            String fileName, boolean waitTaskFinished);
 
 
@@ -138,7 +138,7 @@ public interface IOcrClient {
      * @param waitTaskFinished Indicates whether to wait until task is finished.
      * @return {@link TaskInfo}
      */
-    CompletableFuture<TaskInfo> processCheckmarkFieldAsync(CheckmarkFieldProcessingParams parameters, FileInputStream fileStream,
+    CompletableFuture<TaskInfo> processCheckmarkFieldAsync(CheckmarkFieldProcessingParams parameters, InputStream fileStream,
                                               String fileName, boolean waitTaskFinished);
 
     /**
@@ -161,7 +161,7 @@ public interface IOcrClient {
      * @param waitTaskFinished Indicates whether to wait until task is finished.
      * @return {@link TaskInfo}
      */
-    CompletableFuture<TaskInfo> processFieldsAsync(FieldsProcessingParams parameters, FileInputStream fileStream,
+    CompletableFuture<TaskInfo> processFieldsAsync(FieldsProcessingParams parameters, InputStream fileStream,
                                                 String fileName, boolean waitTaskFinished);
 
     /**
@@ -180,7 +180,7 @@ public interface IOcrClient {
      * @param waitTaskFinished Indicates whether to wait until task is finished.
      * @return {@link TaskInfo}
      */
-    CompletableFuture<TaskInfo> processMrzAsync(MrzProcessingParams parameters, FileInputStream fileStream,
+    CompletableFuture<TaskInfo> processMrzAsync(MrzProcessingParams parameters, InputStream fileStream,
                                         String fileName, boolean waitTaskFinished);
 
     /**
@@ -200,7 +200,7 @@ public interface IOcrClient {
      * @param waitTaskFinished Indicates whether to wait until task is finished.
      * @return {@link TaskInfo}
      */
-    CompletableFuture<TaskInfo> processReceiptAsync(ReceiptProccessingParams parameters, FileInputStream fileStream,
+    CompletableFuture<TaskInfo> processReceiptAsync(ReceiptProccessingParams parameters, InputStream fileStream,
                                      String fileName, boolean waitTaskFinished);
 
     /**

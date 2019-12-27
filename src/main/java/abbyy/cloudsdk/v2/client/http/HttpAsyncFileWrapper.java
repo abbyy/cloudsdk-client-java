@@ -21,12 +21,12 @@ public class HttpAsyncFileWrapper {
     private static final String lineSeparator = "\r\n";
     private static final String boundaryPrefix = "--";
 
-    private FileInputStream fileStream;
+    private InputStream fileStream;
     private String fileName;
 
     private String boundary;
 
-    public HttpAsyncFileWrapper(FileInputStream fileStream, String fileName) {
+    public HttpAsyncFileWrapper(InputStream fileStream, String fileName) {
         this.fileStream = fileStream;
         this.fileName = fileName;
         this.boundary = UUID.randomUUID().toString();
