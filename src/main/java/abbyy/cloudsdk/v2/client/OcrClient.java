@@ -24,15 +24,23 @@ import abbyy.cloudsdk.v2.client.models.requestparams.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class OcrClient implements IOcrClient {
 
     private HttpAsyncClient httpAsyncClient;
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private Optional<Integer> timeToWait = Optional.empty();
 
     public OcrClient(AuthInfo authInfo) {
         this.httpAsyncClient = new HttpAsyncClient(authInfo);
+    }
+
+    public OcrClient(AuthInfo authInfo, int timeToWait) {
+        this.httpAsyncClient = new HttpAsyncClient(authInfo);
+        this.timeToWait = Optional.of(timeToWait);
     }
 
     /**
@@ -217,7 +225,7 @@ public class OcrClient implements IOcrClient {
     private CompletableFuture<TaskInfo> waitForTask(TaskInfo taskInfo) {
         if (TaskExtensions.isInProcess(taskInfo)) {
             try {
-                Thread.sleep(taskInfo.getRequestStatusDelay());
+                Thread.sleep(timeToWait.orElse(taskInfo.getRequestStatusDelay()));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
