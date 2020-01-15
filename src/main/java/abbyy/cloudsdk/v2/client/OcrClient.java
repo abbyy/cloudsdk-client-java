@@ -39,7 +39,7 @@ public class OcrClient implements IOcrClient {
      * {@inheritDoc}
      */
     @Override
-    public CompletableFuture<TaskInfo> processImageAsync(ImageProcessingParams parameters, FileInputStream fileStream, String fileName,
+    public CompletableFuture<TaskInfo> processImageAsync(ImageProcessingParams parameters, InputStream fileStream, String fileName,
                                                          boolean waitTaskFinished){
         return startTaskAsync(HttpRequestMethod.Post, Urls.ProcessImage, parameters, fileStream, fileName, waitTaskFinished);
     }
@@ -48,7 +48,7 @@ public class OcrClient implements IOcrClient {
      * {@inheritDoc}
      */
     @Override
-    public CompletableFuture<TaskInfo> submitImageAsync(ImageSubmittingParams parameters, FileInputStream fileStream, String fileName) {
+    public CompletableFuture<TaskInfo> submitImageAsync(ImageSubmittingParams parameters, InputStream fileStream, String fileName) {
         return makeRequestAsync(HttpRequestMethod.Post, Urls.SubmitImage, parameters, fileStream, fileName, parameters.getResponseClass());
     }
 
@@ -64,7 +64,7 @@ public class OcrClient implements IOcrClient {
      * {@inheritDoc}
      */
     @Override
-    public CompletableFuture<TaskInfo> processBusinessCardAsync(BusinessCardProcessingParams parameters, FileInputStream fileStream,
+    public CompletableFuture<TaskInfo> processBusinessCardAsync(BusinessCardProcessingParams parameters, InputStream fileStream,
                                                                 String fileName, boolean waitTaskFinished) {
         return startTaskAsync(HttpRequestMethod.Post, Urls.ProcessBusinessCard, parameters, fileStream, fileName, waitTaskFinished);
     }
@@ -73,7 +73,7 @@ public class OcrClient implements IOcrClient {
      * {@inheritDoc}
      */
     @Override
-    public CompletableFuture<TaskInfo> processTextFieldAsync(TextFieldProcessingParams parameters, FileInputStream fileStream,
+    public CompletableFuture<TaskInfo> processTextFieldAsync(TextFieldProcessingParams parameters, InputStream fileStream,
                                                              String fileName, boolean waitTaskFinished) {
         return startTaskAsync(HttpRequestMethod.Post, Urls.ProcessTextField, parameters, fileStream, fileName, waitTaskFinished);
     }
@@ -82,7 +82,7 @@ public class OcrClient implements IOcrClient {
      * {@inheritDoc}
      */
     @Override
-    public CompletableFuture<TaskInfo> processBarcodeFieldAsync(BarcodeFieldProcessingParams parameters, FileInputStream fileStream,
+    public CompletableFuture<TaskInfo> processBarcodeFieldAsync(BarcodeFieldProcessingParams parameters, InputStream fileStream,
                                                          String fileName, boolean waitTaskFinished) {
         return startTaskAsync(HttpRequestMethod.Post, Urls.ProcessBarcodeField, parameters, fileStream, fileName, waitTaskFinished);
     }
@@ -91,7 +91,7 @@ public class OcrClient implements IOcrClient {
      * {@inheritDoc}
      */
     @Override
-    public CompletableFuture<TaskInfo> processCheckmarkFieldAsync(CheckmarkFieldProcessingParams parameters, FileInputStream fileStream,
+    public CompletableFuture<TaskInfo> processCheckmarkFieldAsync(CheckmarkFieldProcessingParams parameters, InputStream fileStream,
                                                            String fileName, boolean waitTaskFinished) {
         return startTaskAsync(HttpRequestMethod.Post, Urls.ProcessCheckmarkField, parameters, fileStream, fileName, waitTaskFinished);
     }
@@ -100,7 +100,7 @@ public class OcrClient implements IOcrClient {
      * {@inheritDoc}
      */
     @Override
-    public CompletableFuture<TaskInfo> processFieldsAsync(FieldsProcessingParams parameters, FileInputStream fileStream,
+    public CompletableFuture<TaskInfo> processFieldsAsync(FieldsProcessingParams parameters, InputStream fileStream,
                                                    String fileName, boolean waitTaskFinished) {
         return startTaskAsync(HttpRequestMethod.Post, Urls.ProcessFields, parameters, fileStream, fileName, waitTaskFinished);
     }
@@ -109,7 +109,7 @@ public class OcrClient implements IOcrClient {
      * {@inheritDoc}
      */
     @Override
-    public CompletableFuture<TaskInfo> processMrzAsync(MrzProcessingParams parameters, FileInputStream fileStream,
+    public CompletableFuture<TaskInfo> processMrzAsync(MrzProcessingParams parameters, InputStream fileStream,
                                                        String fileName, boolean waitTaskFinished) {
         return startTaskAsync(HttpRequestMethod.Post, Urls.ProcessMrz, parameters, fileStream, fileName, waitTaskFinished);
     }
@@ -118,7 +118,7 @@ public class OcrClient implements IOcrClient {
      * {@inheritDoc}
      */
     @Override
-    public CompletableFuture<TaskInfo> processReceiptAsync(ReceiptProccessingParams parameters, FileInputStream fileStream,
+    public CompletableFuture<TaskInfo> processReceiptAsync(ReceiptProccessingParams parameters, InputStream fileStream,
                                                     String fileName, boolean waitTaskFinished) {
         return startTaskAsync(HttpRequestMethod.Post, Urls.ProcessReceipt, parameters, fileStream, fileName, waitTaskFinished);
     }
@@ -167,7 +167,7 @@ public class OcrClient implements IOcrClient {
             HttpRequestMethod method,
             String requestUrl,
             RequestParams<TaskInfo> params,
-            FileInputStream fileStream,
+            InputStream fileStream,
             String filename,
             boolean waitTaskFinished
     ) {
@@ -183,7 +183,7 @@ public class OcrClient implements IOcrClient {
             HttpRequestMethod method,
             String requestUrl,
             Object params,
-            FileInputStream fileStream,
+            InputStream fileStream,
             String fileName,
             Class<T> responseClass
     ) {
