@@ -8,6 +8,23 @@
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>ABBYY Cloud OCR SDK allows to recognize printed text (OCR) and hand-printed text (ICR) on images, convert image-only documents to searchable PDF or editable Microsoft Office formats, extract data from receipts, business cards and IDs through the simple HTTP API. This Java library provides classes and methods to access ABBYY Cloud OCR SDK API endpoints.</description>
+    <url>https://github.com/abbyy/cloudsdk-client-java</url>
+
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git://github.com/abbyy/cloudsdk-client-java.git</connection>
+        <developerConnection>scm:git:ssh://github.com:abbyy/cloudsdk-client-java.git</developerConnection>
+        <url>https://github.com/abbyy/cloudsdk-client-java/tree/master</url>
+    </scm>
+
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
