@@ -5,7 +5,7 @@
 
     <groupId>com.ocrsdk.abbyy</groupId>
     <artifactId>cloudsdk-client</artifactId>
-    <version>0.10.2-SNAPSHOT</version>
+    <version>${cloudsdk.client.version}</version>
     <packaging>jar</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
@@ -29,6 +29,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <cloudsdk.client.name>cloudsdk-client</cloudsdk.client.name>
+        <cloudsdk.client.version>1.0.0</cloudsdk.client.version>
     </properties>
 
     <dependencies>
