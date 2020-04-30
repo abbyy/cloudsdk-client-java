@@ -14,12 +14,12 @@
 
 package com.ocrsdk.abbyy.v2.client;
 
+import com.google.gson.Gson;
 import com.ocrsdk.abbyy.v2.client.http.HttpAsyncClient;
 import com.ocrsdk.abbyy.v2.client.http.HttpAsyncRequest;
 import com.ocrsdk.abbyy.v2.client.http.HttpAsyncResponse;
 import com.ocrsdk.abbyy.v2.client.http.HttpRequestMethod;
 import com.ocrsdk.abbyy.v2.client.models.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ocrsdk.abbyy.v2.client.models.Error;
 import com.ocrsdk.abbyy.v2.client.models.requestparams.*;
 
@@ -196,8 +196,8 @@ public class OcrClient implements IOcrClient {
         String responseData = response.getContent();
         if (response.getStatusCode() == HttpAsyncResponse.STATUS_CODE_OK) {
             try {
-                ObjectMapper mapper = new ObjectMapper();
-                return mapper.readValue(responseData, responseClass);
+                Gson gson = new Gson();
+                return gson.fromJson(responseData, responseClass);
             } catch (Exception exception) {
                 throw new ApiException(
                         "Could not deserialize the response body.",
@@ -228,8 +228,8 @@ public class OcrClient implements IOcrClient {
 
     private Error tryDeserializeError(String responseData) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.readValue(responseData, Error.class);
+            Gson gson = new Gson();
+            return gson.fromJson(responseData, Error.class);
         }
         catch (Exception e) {
             return Error.fromText(responseData);

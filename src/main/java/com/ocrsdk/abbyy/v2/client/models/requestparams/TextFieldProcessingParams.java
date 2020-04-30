@@ -14,11 +14,11 @@
 
 package com.ocrsdk.abbyy.v2.client.models.requestparams;
 
+import com.google.gson.annotations.SerializedName;
 import com.ocrsdk.abbyy.v2.client.models.TaskInfo;
 import com.ocrsdk.abbyy.v2.client.models.enums.MarkingType;
 import com.ocrsdk.abbyy.v2.client.models.enums.TextType;
 import com.ocrsdk.abbyy.v2.client.models.enums.WritingStyle;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Parameters for Text Field Processing request.
@@ -76,7 +76,7 @@ public final class TextFieldProcessingParams extends RequestParams<TaskInfo> {
     /**
      * Optional. Default is {@link TextType#Normal}. Specifies the type of the text on a page.
      */
-    @JsonProperty("textType")
+    @SerializedName("textType")
     private TextType[] textTypes;
 
     /**

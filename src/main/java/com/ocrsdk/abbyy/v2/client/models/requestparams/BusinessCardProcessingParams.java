@@ -14,11 +14,11 @@
 
 package com.ocrsdk.abbyy.v2.client.models.requestparams;
 
+import com.google.gson.annotations.SerializedName;
 import com.ocrsdk.abbyy.v2.client.models.TaskInfo;
 import com.ocrsdk.abbyy.v2.client.models.enums.BusinessCardExportFormat;
 import com.ocrsdk.abbyy.v2.client.models.enums.ImageSource;
 import com.ocrsdk.abbyy.v2.client.models.enums.ExportFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Parameters for Business Card Processing request
@@ -37,7 +37,7 @@ public final class BusinessCardProcessingParams extends RequestParams<TaskInfo> 
     /**
      * Optional. Default is <see cref="Enums.BusinessCardExportFormat.VCard"/>. Specifies the export format.
      */
-    @JsonProperty("exportFormat")
+    @SerializedName("exportFormat")
     private BusinessCardExportFormat exportFormats;
 
     /**
@@ -75,7 +75,7 @@ public final class BusinessCardProcessingParams extends RequestParams<TaskInfo> 
      * parameter can be used only if the {@link #exportFormats} parameter
      * is set to {@link ExportFormat#Xml}.
      */
-    @JsonProperty("xml:writeExtendedCharacterInfo")
+    @SerializedName("xml:writeExtendedCharacterInfo")
     private Boolean writeExtendedCharacterInfo;
 
     /**
@@ -85,7 +85,7 @@ public final class BusinessCardProcessingParams extends RequestParams<TaskInfo> 
      * parameter can be used only if the {@link #exportFormats} parameter
      * is set to {@link ExportFormat#Xml}.
      */
-    @JsonProperty("xml:writeFieldComponents")
+    @SerializedName("xml:writeFieldComponents")
     private Boolean writeFieldComponents;
 
     public BusinessCardProcessingParams() {

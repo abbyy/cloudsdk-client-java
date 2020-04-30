@@ -14,7 +14,7 @@
 
 package com.ocrsdk.abbyy.v2.client;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
@@ -84,8 +84,8 @@ public class Serializer {
     }
 
     private static String getFieldName(Field field) {
-        JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
-        return jsonProperty == null ? field.getName() : jsonProperty.value();
+        SerializedName serializedName = field.getAnnotation(SerializedName.class);
+        return serializedName == null ? field.getName() : serializedName.value();
     }
 
     private static Object getFieldValue(Field field, Object object) {

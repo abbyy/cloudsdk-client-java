@@ -14,9 +14,9 @@
 
 package com.ocrsdk.abbyy.v2.client.models.requestparams;
 
+import com.google.gson.annotations.SerializedName;
 import com.ocrsdk.abbyy.v2.client.models.TaskInfo;
 import com.ocrsdk.abbyy.v2.client.models.enums.*;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.UUID;
 
@@ -40,7 +40,7 @@ public final class DocumentProcessingParams extends RequestParams<TaskInfo> {
     /**
      * Optional. Default is {@link ExportFormat#Rtf}. Specifies the export format.
      */
-    @JsonProperty("exportFormat")
+    @SerializedName("exportFormat")
     private ExportFormat[] exportFormats;
 
     /**
@@ -51,7 +51,7 @@ public final class DocumentProcessingParams extends RequestParams<TaskInfo> {
     /**
      * Optional. Default is {@link TextType#Normal}. Specifies the type of the text on a page.
      */
-    @JsonProperty("textType")
+    @SerializedName("textType")
     private TextType[] textTypes;
 
     /**
@@ -87,7 +87,7 @@ public final class DocumentProcessingParams extends RequestParams<TaskInfo> {
      * This parameter can be used only if the {@link ExportFormat} parameter contains one of the
      * values for export to PDF.
      */
-    @JsonProperty("pdf:writeTags")
+    @SerializedName("pdf:writeTags")
     private WriteTags writeTags;
 
     /**
@@ -95,7 +95,7 @@ public final class DocumentProcessingParams extends RequestParams<TaskInfo> {
      * should be written to an output file in XML format. This parameter can be used only
      * if the {@link ExportFormat} parameter contains xml or xmlForCorrectedImage value.
      */
-    @JsonProperty("xml:writeRecognitionVariants")
+    @SerializedName("xml:writeRecognitionVariants")
     private Boolean writeRecognitionVariants;
 
     /**
@@ -104,7 +104,7 @@ public final class DocumentProcessingParams extends RequestParams<TaskInfo> {
      * used only if the {@link ExportFormat} parameter contains xml or
      * xmlForCorrectedImage value.
      */
-    @JsonProperty("xml:writeFormatting")
+    @SerializedName("xml:writeFormatting")
     private Boolean writeFormatting;
 
     /**
