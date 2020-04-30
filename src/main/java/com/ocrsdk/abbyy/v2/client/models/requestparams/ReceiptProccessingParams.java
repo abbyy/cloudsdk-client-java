@@ -14,11 +14,11 @@
 
 package com.ocrsdk.abbyy.v2.client.models.requestparams;
 
+import com.google.gson.annotations.SerializedName;
 import com.ocrsdk.abbyy.v2.client.models.TaskInfo;
 import com.ocrsdk.abbyy.v2.client.models.enums.FieldRegionExportMode;
 import com.ocrsdk.abbyy.v2.client.models.enums.ImageSource;
 import com.ocrsdk.abbyy.v2.client.models.enums.ReceiptRecognizingCountry;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Parameters for Receipt Processing request
@@ -59,14 +59,14 @@ public final class ReceiptProccessingParams extends RequestParams<TaskInfo> {
      * are currently supported in beta mode. Specifies the country where the receipt was printed.
      * This parameter can contain several names of countries.
      */
-    @JsonProperty("country")
+    @SerializedName("country")
     private ReceiptRecognizingCountry[] countries;
 
     /**
      * Optional. Default "false". Specifies whether the additional information on the recognized characters
      * (e.g. whether the character is recognized uncertainly) should be written to an output file in XML format.
      */
-    @JsonProperty("xml:writeExtendedCharacterInfo")
+    @SerializedName("xml:writeExtendedCharacterInfo")
     private Boolean writeExtendedCharacterInfo;
 
     /**
@@ -74,7 +74,7 @@ public final class ReceiptProccessingParams extends RequestParams<TaskInfo> {
      * should be saved to the resulting XML file, and how the coordinates should be specified:
      * on the original or on the corrected image.
      */
-    @JsonProperty("xml:fieldRegionExportMode")
+    @SerializedName("xml:fieldRegionExportMode")
     private FieldRegionExportMode fieldRegionExportMode;
 
     public ReceiptProccessingParams() {

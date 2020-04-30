@@ -1,19 +1,19 @@
 package com.ocrsdk.abbyy.v2.client;
 
+import com.google.gson.Gson;
 import com.ocrsdk.abbyy.v2.client.models.Application;
 import com.ocrsdk.abbyy.v2.client.models.AuthInfo;
 import com.ocrsdk.abbyy.v2.client.models.TaskInfo;
 import com.ocrsdk.abbyy.v2.client.models.TaskList;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ocrsdk.abbyy.v2.client.models.enums.*;
 import com.ocrsdk.abbyy.v2.client.models.requestparams.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -23,9 +23,9 @@ public class ClientTest {
 
     @Before
     public void setUp() throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
-        File file = new File("src/test/testsettings.json");
-        testConfig = objectMapper.readValue(file, TestConfig.class);
+        Gson gson = new Gson();
+        FileReader fileReader = new FileReader("src/test/testsettings.json");
+        testConfig = gson.fromJson(fileReader, TestConfig.class);
 
         apiClient = new OcrClient(new AuthInfo(testConfig.getHost(), testConfig.getApplicationId(), testConfig.getPassword()));
     }
