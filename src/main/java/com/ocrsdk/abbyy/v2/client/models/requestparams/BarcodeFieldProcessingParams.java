@@ -14,9 +14,9 @@
 
 package com.ocrsdk.abbyy.v2.client.models.requestparams;
 
+import com.google.gson.annotations.SerializedName;
 import com.ocrsdk.abbyy.v2.client.models.TaskInfo;
 import com.ocrsdk.abbyy.v2.client.models.enums.BarcodeType;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Parameters for Barcode Field Processing
@@ -43,7 +43,7 @@ public final class BarcodeFieldProcessingParams extends RequestParams<TaskInfo> 
      * Optional. Default is Autodetect. Specifies the type of the barcode.
      * This parameter may also contain several barcode types.
      */
-    @JsonProperty("barcodeType")
+    @SerializedName("barcodeType")
     private BarcodeType[] barcodeTypes;
 
     /**

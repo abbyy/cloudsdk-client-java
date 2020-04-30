@@ -14,7 +14,7 @@
 
 package com.ocrsdk.abbyy.v2.client.models;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Error container
@@ -23,7 +23,7 @@ public final class Error {
     /**
      * Error object
      */
-    @JsonProperty("error")
+    @SerializedName("error")
     private ErrorData errorData;
 
     public ErrorData getErrorData() {
