@@ -9,7 +9,7 @@
     <packaging>jar</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>ABBYY Cloud OCR SDK allows to recognize printed text (OCR) and hand-printed text (ICR) on images, convert image-only documents to searchable PDF or editable Microsoft Office formats, extract data from receipts, business cards and IDs through the simple HTTP API. This Java library provides classes and methods to access ABBYY Cloud OCR SDK API endpoints.</description>
+    <description>ABBYY Cloud OCR SDK allows to recognize printed text (OCR) and hand-printed text (ICR) on images, convert image-only documents to searchable PDF or editable Microsoft Office formats, extract data from business cards and IDs through the simple HTTP API. This Java library provides classes and methods to access ABBYY Cloud OCR SDK API endpoints.</description>
     <url>https://github.com/abbyy/cloudsdk-client-java</url>
 
     <licenses>

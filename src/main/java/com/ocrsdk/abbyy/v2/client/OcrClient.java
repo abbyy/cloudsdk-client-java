@@ -118,15 +118,6 @@ public class OcrClient implements IOcrClient {
      * {@inheritDoc}
      */
     @Override
-    public CompletableFuture<TaskInfo> processReceiptAsync(ReceiptProccessingParams parameters, InputStream fileStream,
-                                                    String fileName, boolean waitTaskFinished) {
-        return startTaskAsync(HttpRequestMethod.Post, Urls.ProcessReceipt, parameters, fileStream, fileName, waitTaskFinished);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public CompletableFuture<TaskInfo> getTaskStatusAsync(UUID taskId) {
         return makeRequestAsync(HttpRequestMethod.Get, Urls.GetTaskStatus, taskId == null ? null : new Task(taskId), null, null, TaskInfo.class);
     }

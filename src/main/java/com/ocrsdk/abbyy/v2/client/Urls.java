@@ -26,7 +26,6 @@ public class Urls {
     public final static String ProcessTextField = "v2/processTextField";
     public final static String ProcessFields = "v2/processFields";
     public final static String ProcessBusinessCard = "v2/processBusinessCard";
-    public final static String ProcessReceipt = "v2/processReceipt";
     public final static String ProcessMrz = "v2/processMRZ";
     public final static String GetApplicationInfo = "v2/getApplicationInfo";
     public final static String ListTasks = "v2/listTasks";

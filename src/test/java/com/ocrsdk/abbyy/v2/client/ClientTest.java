@@ -178,23 +178,6 @@ public class ClientTest {
     }
 
     @Test
-    public void processReceiptTest() throws InterruptedException, ExecutionException, FileNotFoundException {
-        FileInputStream fileStream = new FileInputStream(TestFile.IMAGE);
-
-        ReceiptProccessingParams receiptProccessingParams = new ReceiptProccessingParams();
-        receiptProccessingParams.setCountries(new ReceiptRecognizingCountry[]{ReceiptRecognizingCountry.Russia});
-
-        TaskInfo processReceiptTask = apiClient.processReceiptAsync(
-                receiptProccessingParams,
-                fileStream,
-                TestFile.FIELDS,
-                true
-        ).get();
-
-        checkResultTask(processReceiptTask);
-    }
-
-    @Test
     public void getTaskStatusTest() throws InterruptedException, ExecutionException, FileNotFoundException {
         TaskInfo submitImageTask = submitImageAsync(TestFile.IMAGE);
         TaskInfo resultTask = apiClient.getTaskStatusAsync(submitImageTask.getTaskId()).get();

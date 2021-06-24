@@ -184,26 +184,6 @@ public interface IOcrClient {
                                         String fileName, boolean waitTaskFinished);
 
     /**
-     * Important: the technology fully supports the receipts issued in USA and France, other countries are currently supported in beta mode.
-     * The method allows you to recognize the image of a receipt.The method loads the image, creates a processing task for the image with the
-     * specified parameters, and passes the task for processing. The result is returned in XML format.
-     *
-     * <b>Note:</b> The elements and attributes of the resulting file are described in
-     * <a href="https://en.wikipedia.org/wiki/ICAO"/>
-     * For a step-by-step guide, see <a href="https://www.ocrsdk.com/documentation/quick-start-guide/receipt-recognition/">How to Recognize
-     * Receipts.</a> The recommendations on preparing the input images can be found in
-     * <a href="https://www.ocrsdk.com/documentation/hints-tips/photograph-scan-receipts/">Photographing and Scanning Receipts</a>.
-     *
-     * @param parameters Receipt processing parameters
-     * @param fileStream Stream of the file with the image to recognize
-     * @param fileName Name of the file with the image
-     * @param waitTaskFinished Indicates whether to wait until task is finished.
-     * @return {@link TaskInfo}
-     */
-    CompletableFuture<TaskInfo> processReceiptAsync(ReceiptProccessingParams parameters, InputStream fileStream,
-                                     String fileName, boolean waitTaskFinished);
-
-    /**
      * The method returns the current status of the task and the URL of the result of processing for completed tasks.
      * Please note that the task status is not changed momentarily. Do not call this method more frequently than once in 2 or 3 seconds.
      * @param taskId Id of the task
